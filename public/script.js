@@ -1,6 +1,14 @@
 const newClassName = document.getElementById("newClassName")
 const addClassBtn = document.getElementById("addClassBtn")
 const classListContainer = document.getElementById("classListContainer")
+const classSelect = document.getElementById("studentClassId")
+const studentName = document.getElementById("studentName")
+const studentAge = document.getElementById("studentAge")
+const studentMarks = document.getElementById("studentMarks")
+const studentPresent = document.getElementById("studentPresent")
+const addStudentBtn = document.getElementById("addStudentBtn")
+
+
 const api = "http://127.0.0.1:3000"
 
 let students = [
@@ -77,7 +85,6 @@ const displayClasses = () => {
           </span>
         `;
         classListContainer.appendChild(classBadge)
-        console.log(el);
     })
 }
 displayClasses();
@@ -86,4 +93,34 @@ const deleteClass = (id) =>{
     let deletedClasses = classes.filter(el=> el.id != id)
     classes = deletedClasses
     displayClasses()    
+}
+
+
+
+
+
+// Student Crud
+classSelect.innerHTML = '<option value="">— select class —</option>' + 
+    classes.map(c => `<option value="${c.id}">${c.name}</option>`)
+
+addStudentBtn.addEventListener("click", ()=>{
+    createStudent();
+})
+const createStudent = () => {
+    const id = students.length
+    const name = studentName.value
+    const age = parseInt(studentAge.value)
+    const marks = parseInt(studentMarks.value)
+    const present = parseInt(studentPresent.value)
+    const class_id = parseInt(classSelect.value)    
+    const student = {
+        id,
+        name,
+        age,
+        class_id,
+        marks,
+        present,
+    }
+    students.push(student)    
+    
 }
