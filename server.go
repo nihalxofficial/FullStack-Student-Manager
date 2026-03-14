@@ -44,7 +44,7 @@ func main(){
 
 	app := fiber.New()
 	app.Use(cors.New())
-	app.Use("/", static.New("./public"))
+	
 
 	// Class Roues
 	// ====================Read Classes=======================
@@ -248,5 +248,6 @@ func main(){
         "total_present": totalPresent,
     })
 	})
+	app.Use("/", static.New("./public"))
 	app.Listen(":3000")
 }
