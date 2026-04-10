@@ -81,6 +81,10 @@ This project simulates a real-world school management dashboard with live statis
 | `min_attendance` | `float` | Minimum attendance threshold |
 
 ---
+<img width="1366" height="1083" alt="Student-Manager" src="https://github.com/user-attachments/assets/ba9e08e8-50d4-4c32-bb69-e76c7e314201" />
+
+
+---
 
 ## 🚀 Getting Started
 
