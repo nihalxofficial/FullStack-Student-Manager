@@ -1,6 +1,17 @@
 # 🎓 Student Management System
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Online-brightgreen?style=for-the-badge&logo=render)](https://student-management-k9us.onrender.com/)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/nihalxofficial/FullStack-Student-Manager)
+
 A full-stack web application for managing students, classes, marks, and attendance — built with a **Go Fiber** backend and a **Vanilla JS + Tailwind CSS + DaisyUI** frontend.
+
+---
+
+## 🌐 Live Demo
+
+👉 **[https://student-management-k9us.onrender.com/](https://student-management-k9us.onrender.com/)**
+
+> ⚠️ Hosted on Render's free tier — may take ~30 seconds to spin up on first load.
 
 ---
 
@@ -8,12 +19,14 @@ A full-stack web application for managing students, classes, marks, and attendan
 
 This project simulates a real-world school management dashboard with live statistics, advanced filtering, and full CRUD operations — all connected through a clean RESTful API.
 
+![Student-Manager](https://github.com/user-attachments/assets/ba9e08e8-50d4-4c32-bb69-e76c7e314201)
+
 ---
 
 ## ✨ Features
 
 ### 👥 Student Management
-- Add, edit (double-click to edit inline), and delete students
+- Add, edit (click on a student card to populate the form), and delete students
 - Manage marks and attendance per student
 
 ### 🏫 Class Management
@@ -26,7 +39,8 @@ This project simulates a real-world school management dashboard with live statis
 | 👤 Total Students | Live count of all registered students |
 | 🏫 Total Classes | Number of active classes |
 | 📈 Average Marks | Computed average across all students |
-| ✅ Average Attendance | Attendance percentage across all students |
+| ✅ Present Avg | Attendance percentage across all students |
+| 🧮 Total Present | Cumulative present count across all students |
 
 ### 🔍 Advanced Filtering
 - 🔎 Search students by name
@@ -81,10 +95,6 @@ This project simulates a real-world school management dashboard with live statis
 | `min_attendance` | `float` | Minimum attendance threshold |
 
 ---
-<img width="1366" height="1083" alt="Student-Manager" src="https://github.com/user-attachments/assets/ba9e08e8-50d4-4c32-bb69-e76c7e314201" />
-
-
----
 
 ## 🚀 Getting Started
 
@@ -95,8 +105,8 @@ This project simulates a real-world school management dashboard with live statis
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/nihalxofficial/student-management-system.git
-cd student-management-system
+git clone https://github.com/nihalxofficial/FullStack-Student-Manager.git
+cd FullStack-Student-Manager
 ```
 
 ### 2. Configure the Database
@@ -125,7 +135,7 @@ The app will be available at `http://localhost:3000`
 ## 📁 Project Structure
 
 ```
-student-management-system/
+FullStack-Student-Manager/
 ├── public/
 │   ├── index.html      # Main HTML file
 │   ├── app.js          # ES6 JavaScript logic
@@ -147,3 +157,5 @@ student-management-system/
 - 🧱 Designing real-world CRUD systems with clean separation of concerns
 
 ---
+
+✅ © 2026 | All rights reserved by Md Nihal Uddin
