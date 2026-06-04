@@ -2,6 +2,7 @@
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Online-brightgreen?style=for-the-badge&logo=render)](https://student-management-k9us.onrender.com/)
 [![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/nihalxofficial/FullStack-Student-Manager)
+[![Docker Hub](https://img.shields.io/badge/Docker%20Hub-Image-2496ED?style=for-the-badge&logo=docker)](https://hub.docker.com/r/nihalxofficial/student-manager)
 
 A full-stack web application for managing students, classes, marks and attendance — built with a **Go Fiber** backend and a **Vanilla JS + Tailwind CSS + DaisyUI** frontend.
 
@@ -83,6 +84,7 @@ This project simulates a real-world school management dashboard with live statis
 | **GORM** | ORM for database operations |
 | **PostgreSQL** | Relational SQL database |
 | **Redis** | In-memory caching layer |
+| **Docker** | Containerization & deployment |
 
 ---
 
@@ -121,6 +123,24 @@ This project simulates a real-world school management dashboard with live statis
 | `present` | `int` | Minimum attendance threshold |
 
 ---
+
+## 🐳 Docker
+
+The project is fully containerized and available on Docker Hub.
+
+### Pull & Run
+```bash
+docker pull nihalxofficial/student-manager:v1
+
+docker run -d \
+  -p 5000:5000 \
+  -e DATABASE_URL=postgresql://user:password@host/dbname \
+  -e REDIS_URL=rediss://default:password@host:6380 \
+  -e RENDER_EXTERNAL_URL=https://your-app.onrender.com \
+  nihalxofficial/student-manager
+```
+
+Then open **http://localhost:5000**
 
 ## 🚀 Getting Started
 
@@ -173,6 +193,7 @@ FullStack-Student-Manager/
 │   └── style.css       # Custom styles (Tailwind + DaisyUI)
 ├── server.go           # Entire Go backend (Fiber + GORM + Redis + routes)
 ├── .env                # Environment variables (not committed)
+├── Dockerfile          # Docker image definition
 ├── go.mod
 ├── go.sum
 └── README.md
@@ -190,6 +211,7 @@ FullStack-Student-Manager/
 - 🧱 Designing real-world CRUD systems with clean separation of concerns
 - 🚀 Deploying full-stack Go apps on **Render** with keep-alive strategies
 - 📄 Generating dynamic printable HTML reports from live API data
+- 🐳 Containerizing a Go app with **Docker** and publishing to Docker Hub
 
 ---
 
