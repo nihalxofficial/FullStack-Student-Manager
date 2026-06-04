@@ -54,6 +54,13 @@ This project simulates a real-world school management dashboard with live statis
 - Cache is automatically invalidated on every create, update, or delete
 - Graceful fallback — app continues working even if Redis is unavailable
 
+### 📄 Report Generator
+- Generates a full printable/PDF report with one click
+- Includes overview stats, per-class breakdown, top 5 students by marks
+- Highlights students needing attention (marks < 60 or attendance < 15)
+- Full student table with Pass/Fail status
+- Opens in a new tab with print dialog for easy PDF export
+
 ### 🔄 Keep-Alive
 - Self-pings the server every **14 minutes** to prevent Render's free tier from spinning down
 
@@ -150,7 +157,7 @@ go mod tidy
 go run server.go
 ```
 
-The app will be available at `http://localhost:3000`
+The app will be available at `http://localhost:5000`
 
 > The Go server serves the `public/` folder as static files, so no separate frontend setup is needed.
 
@@ -182,7 +189,8 @@ FullStack-Student-Manager/
 - 🔍 Implementing multi-parameter filtering with live search
 - 🧱 Designing real-world CRUD systems with clean separation of concerns
 - 🚀 Deploying full-stack Go apps on **Render** with keep-alive strategies
+- 📄 Generating dynamic printable HTML reports from live API data
 
 ---
 
-✅ © 2026 | All rights reserved by Md Nihal Uddin
+✅ © 2026 | All rights reserved by Md. Nihal Uddin
