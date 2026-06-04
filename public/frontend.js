@@ -40,12 +40,54 @@ const showStats = async () => {
 }
 
 
+// ================Shared student renderer=================
+const renderStudents = (students, emptyMessage = "No students found") => {
+    studentListContainer.innerHTML = ""
+
+    if (students.length === 0) {
+        studentListContainer.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-16 text-blue-300/50">
+            <div class="text-4xl mb-3">🎓</div>
+            <div class="text-lg font-semibold">${emptyMessage}</div>
+        </div>`
+        return
+    }
+
+    students.forEach(s => {
+        const list = document.createElement("div")
+        list.innerHTML = `
+        <div class="student-card cursor-pointer" data-student-id="${s.id}">
+              <div class="flex items-center gap-3 w-3/12">
+                <span class="avatar-placeholder text-sm">${s.name.charAt(0)}</span>
+                <div>
+                  <div class="font-semibold text-white text-sm">${s.name}</div>
+                  <div class="flex text-xs text-blue-300/70 gap-2 mt-0.5">
+                    <span>ID ${s.id}</span>
+                    <span>●</span>
+                    <span>${s.age} y</span>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-4 w-5/12 justify-start">
+                <span class="class-badge">${getClassName(s.class_id)}</span>
+                <span class="mark-pill">📊 ${s.marks}%</span>
+                <span class="attendance-icon ${s.present > 20 ? 'bg-blue-900/40 text-blue-300 border border-blue-800' : 'bg-amber-900/30 text-amber-300'}">📅 ${s.present}</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <button class="action-btn edit-student" data-student-id="${s.id}">✎ edit</button>
+                <button class="action-btn delete-student" data-student-id="${s.id}">🗑️ delete</button>
+              </div>
+            </div>
+        `
+        studentListContainer.appendChild(list)
+    })
+}
+
+
 // Class Crud================================
 
 newClassName.addEventListener("keyup", (event) => {
-    if (event.key === "Enter") {
-        loadNewClass()
-    }
+    if (event.key === "Enter") loadNewClass()
 })
 
 addClassBtn.addEventListener("click", () => {
@@ -65,6 +107,7 @@ const loadNewClass = async () => {
     }
     newClassName.value = ""
     await displayClasses()
+    await showStats()
 }
 
 const displayClasses = async () => {
@@ -112,6 +155,7 @@ const deleteClass = async (classId) => {
 
     await displayClasses()
     await displayStudents()
+    await showStats()
 }
 
 const valueSelect = () => {
@@ -217,47 +261,7 @@ const displayStudents = async () => {
         console.error("Expected array but got:", students)
         return
     }
-
-    studentListContainer.innerHTML = ""
-
-    if (students.length === 0) {
-        studentListContainer.innerHTML = `
-        <div class="flex flex-col items-center justify-center py-16 text-blue-300/50">
-            <div class="text-4xl mb-3">🎓</div>
-            <div class="text-lg font-semibold">No students found</div>
-            <div class="text-sm mt-1">Add a student to get started</div>
-        </div>`
-        return
-    }
-
-    students.forEach(s => {
-        const list = document.createElement("div")
-        list.innerHTML = `
-        <div class="student-card cursor-pointer" data-student-id="${s.id}">
-              <div class="flex items-center gap-3 w-3/12">
-                <span class="avatar-placeholder text-sm">${s.name.charAt(0)}</span>
-                <div>
-                  <div class="font-semibold text-white text-sm">${s.name}</div>
-                  <div class="flex text-xs text-blue-300/70 gap-2 mt-0.5">
-                    <span>ID ${s.id}</span>
-                    <span>●</span>
-                    <span>${s.age} y</span>
-                  </div>
-                </div>
-              </div>
-              <div class="flex items-center gap-4 w-5/12 justify-start">
-                <span class="class-badge">${getClassName(s.class_id)}</span>
-                <span class="mark-pill">📊 ${s.marks}%</span>
-                <span class="attendance-icon ${s.present > 20 ? 'bg-blue-900/40 text-blue-300 border border-blue-800' : 'bg-amber-900/30 text-amber-300'}">📅 ${s.present}</span>
-              </div>
-              <div class="flex items-center gap-1">
-                <button class="action-btn edit-student" data-student-id="${s.id}">✎ edit</button>
-                <button class="action-btn delete-student" data-student-id="${s.id}">🗑️ delete</button>
-              </div>
-            </div>
-        `
-        studentListContainer.appendChild(list)
-    })
+    renderStudents(students, "No students yet — add one above")
 }
 
 function getClassName(classId) {
@@ -287,49 +291,23 @@ const filterStudents = async () => {
 
     const res = await fetch(url)
     const students = await res.json()
-    studentListContainer.innerHTML = ""
 
-    if (students.length === 0) {
-        studentListContainer.innerHTML = `
-        <div class="flex flex-col items-center justify-center py-16 text-blue-300/50">
-            <div class="text-4xl mb-3">🎓</div>
-            <div class="text-lg font-semibold">No students found</div>
-            <div class="text-sm mt-1">Add a student to get started</div>
-        </div>`
-        return
-    }
-
-    students.forEach(s => {
-        const list = document.createElement("div")
-        list.innerHTML = `
-        <div class="student-card cursor-pointer" data-student-id="${s.id}">
-              <div class="flex items-center gap-3 w-3/12">
-                <span class="avatar-placeholder text-sm">${s.name.charAt(0)}</span>
-                <div>
-                  <div class="font-semibold text-white text-sm">${s.name}</div>
-                  <div class="flex text-xs text-blue-300/70 gap-2 mt-0.5">
-                    <span>ID ${s.id}</span>
-                    <span>●</span>
-                    <span>${s.age} y</span>
-                  </div>
-                </div>
-              </div>
-              <div class="flex items-center gap-4 w-5/12 justify-start">
-                <span class="class-badge">${getClassName(s.class_id)}</span>
-                <span class="mark-pill">📊 ${s.marks}%</span>
-                <span class="attendance-icon ${s.present > 20 ? 'bg-blue-900/40 text-blue-300 border border-blue-800' : 'bg-amber-900/30 text-amber-300'}">📅 ${s.present}</span>
-              </div>
-              <div class="flex items-center gap-1">
-                <button class="action-btn edit-student" data-student-id="${s.id}">✎ edit</button>
-                <button class="action-btn delete-student" data-student-id="${s.id}">🗑️ delete</button>
-              </div>
-            </div>
-        `
-        studentListContainer.appendChild(list)
-    })
+    // If nothing is filtered, show all — empty message is specific to filter
+    const isFiltered = name || classId || marks || present
+    renderStudents(students, isFiltered ? "No students match your filters" : "No students yet — add one above")
 }
 
 applyFilterBtn.addEventListener("click", filterStudents)
+
+// Live search by name — fires on every keystroke
+filterName.addEventListener("input", () => {
+    if (filterName.value === "") {
+        // Empty name → show all students
+        displayStudents()
+    } else {
+        filterStudents()
+    }
+})
 
 // ================Init=================
 const init = async () => {
