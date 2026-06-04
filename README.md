@@ -3,7 +3,7 @@
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Online-brightgreen?style=for-the-badge&logo=render)](https://student-management-k9us.onrender.com/)
 [![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/nihalxofficial/FullStack-Student-Manager)
 
-A full-stack web application for managing students, classes, marks, and attendance — built with a **Go Fiber** backend and a **Vanilla JS + Tailwind CSS + DaisyUI** frontend.
+A full-stack web application for managing students, classes, marks and attendance — built with a **Go Fiber** backend and a **Vanilla JS + Tailwind CSS + DaisyUI** frontend.
 
 ---
 
@@ -17,7 +17,7 @@ A full-stack web application for managing students, classes, marks, and attendan
 
 ## 📸 Overview
 
-This project simulates a real-world school management dashboard with live statistics, advanced filtering, and full CRUD operations — all connected through a clean RESTful API.
+This project simulates a real-world school management dashboard with live statistics, advanced filtering and full CRUD operations — all connected through a clean RESTful API.
 
 ![Student-Manager](https://github.com/user-attachments/assets/ba9e08e8-50d4-4c32-bb69-e76c7e314201)
 
@@ -26,7 +26,7 @@ This project simulates a real-world school management dashboard with live statis
 ## ✨ Features
 
 ### 👥 Student Management
-- Add, edit (click on a student card to populate the form), and delete students
+- Add, edit (click on a student card to populate the form) and delete students
 - Manage marks and attendance per student
 
 ### 🏫 Class Management
@@ -43,10 +43,19 @@ This project simulates a real-world school management dashboard with live statis
 | 🧮 Total Present | Cumulative present count across all students |
 
 ### 🔍 Advanced Filtering
-- 🔎 Search students by name
+- 🔎 Search students by name (live search — updates on every keystroke)
 - 🏷️ Filter by class
 - 📉 Filter by minimum marks
 - 📅 Filter by minimum attendance
+
+### ⚡ Redis Caching
+- Student list and class list cached for **30 seconds**
+- Stats cached for **5 minutes**
+- Cache is automatically invalidated on every create, update, or delete
+- Graceful fallback — app continues working even if Redis is unavailable
+
+### 🔄 Keep-Alive
+- Self-pings the server every **14 minutes** to prevent Render's free tier from spinning down
 
 ---
 
@@ -65,7 +74,8 @@ This project simulates a real-world school management dashboard with live statis
 | **Go (Golang)** | Server-side language |
 | **Fiber** | Fast, Express-inspired web framework |
 | **GORM** | ORM for database operations |
-| **MySQL** | Relational SQL database |
+| **PostgreSQL** | Relational SQL database |
+| **Redis** | In-memory caching layer |
 
 ---
 
@@ -74,25 +84,34 @@ This project simulates a real-world school management dashboard with live statis
 ### Students
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/api/students` | Get all students (with optional filters) |
-| `POST` | `/api/students` | Create a new student |
-| `PUT` | `/api/students/:id` | Update student details |
-| `DELETE` | `/api/students/:id` | Delete a student |
+| `GET` | `/students` | Get all students |
+| `GET` | `/students/filtered` | Get students with optional filters |
+| `GET` | `/students/:id` | Get a single student |
+| `POST` | `/students` | Create a new student |
+| `PUT` | `/students/:id` | Update student details |
+| `DELETE` | `/students/:id` | Delete a student |
+| `DELETE` | `/students/class/:id` | Delete all students in a class |
 
 ### Classes
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/api/classes` | Get all classes |
-| `POST` | `/api/classes` | Create a new class |
-| `DELETE` | `/api/classes/:id` | Delete a class (safe, checks dependencies) |
+| `GET` | `/classes` | Get all classes |
+| `POST` | `/classes` | Create a new class |
+| `DELETE` | `/classes/:id` | Delete a class (safe, checks dependencies) |
 
-### Query Parameters (for `GET /api/students`)
+### Stats & Health
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/stats` | Get aggregated statistics |
+| `GET` | `/ping` | Health check / keep-alive endpoint |
+
+### Query Parameters (for `GET /students/filtered`)
 | Param | Type | Description |
 |-------|------|-------------|
 | `name` | `string` | Filter by student name |
 | `class_id` | `int` | Filter by class |
-| `min_marks` | `float` | Minimum marks threshold |
-| `min_attendance` | `float` | Minimum attendance threshold |
+| `marks` | `int` | Minimum marks threshold |
+| `present` | `int` | Minimum attendance threshold |
 
 ---
 
@@ -100,7 +119,8 @@ This project simulates a real-world school management dashboard with live statis
 
 ### Prerequisites
 - [Go](https://golang.org/dl/) 1.20+
-- [MySQL](https://dev.mysql.com/downloads/) 8.0+
+- [PostgreSQL](https://www.postgresql.org/download/) 14+
+- [Redis](https://redis.io/download/) 7+
 - A modern web browser
 
 ### 1. Clone the Repository
@@ -109,20 +129,24 @@ git clone https://github.com/nihalxofficial/FullStack-Student-Manager.git
 cd FullStack-Student-Manager
 ```
 
-### 2. Configure the Database
-Create a MySQL database:
-```sql
-CREATE DATABASE student_management;
+### 2. Set Environment Variables
+
+Create a `.env` file in the root directory:
+```env
+DATABASE_URL=postgresql://user:password@host/dbname
+REDIS_URL=rediss://default:password@host:6380
+RENDER_EXTERNAL_URL=https://your-app.onrender.com
 ```
 
-Update your DB credentials inside `server.go`:
-```go
-dsn := "root:yourpassword@tcp(localhost:3306)/student_management?parseTime=true"
-```
+> `RENDER_EXTERNAL_URL` is auto-set by Render in production — no need to add it manually there.
 
-### 3. Run the Server
+### 3. Install Dependencies
 ```bash
 go mod tidy
+```
+
+### 4. Run the Server
+```bash
 go run server.go
 ```
 
@@ -140,7 +164,8 @@ FullStack-Student-Manager/
 │   ├── index.html      # Main HTML file
 │   ├── app.js          # ES6 JavaScript logic
 │   └── style.css       # Custom styles (Tailwind + DaisyUI)
-├── server.go           # Entire Go backend (Fiber + GORM + routes)
+├── server.go           # Entire Go backend (Fiber + GORM + Redis + routes)
+├── .env                # Environment variables (not committed)
 ├── go.mod
 ├── go.sum
 └── README.md
@@ -151,10 +176,12 @@ FullStack-Student-Manager/
 ## 💡 What I Learned
 
 - ⚙️ Building scalable REST APIs with **Go Fiber**
-- 🗄️ Managing relational data using **GORM** and **MySQL**
+- 🗄️ Managing relational data using **GORM** and **PostgreSQL**
+- ⚡ Implementing **Redis caching** with automatic invalidation strategies
 - 🔗 Connecting a frontend to a backend via **fetch API**
-- 🔍 Implementing multi-parameter filtering logic
+- 🔍 Implementing multi-parameter filtering with live search
 - 🧱 Designing real-world CRUD systems with clean separation of concerns
+- 🚀 Deploying full-stack Go apps on **Render** with keep-alive strategies
 
 ---
 

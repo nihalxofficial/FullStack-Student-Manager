@@ -292,17 +292,14 @@ const filterStudents = async () => {
     const res = await fetch(url)
     const students = await res.json()
 
-    // If nothing is filtered, show all — empty message is specific to filter
     const isFiltered = name || classId || marks || present
     renderStudents(students, isFiltered ? "No students match your filters" : "No students yet — add one above")
 }
 
 applyFilterBtn.addEventListener("click", filterStudents)
 
-// Live search by name — fires on every keystroke
 filterName.addEventListener("input", () => {
     if (filterName.value === "") {
-        // Empty name → show all students
         displayStudents()
     } else {
         filterStudents()
@@ -311,9 +308,9 @@ filterName.addEventListener("input", () => {
 
 // ================Init=================
 const init = async () => {
-    await displayClasses()   // loads classes + populates selects
-    await displayStudents()  // loads students
-    await showStats()        // loads stats once
+    await displayClasses()   
+    await displayStudents()  
+    await showStats()
 }
 
 init()
