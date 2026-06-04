@@ -306,10 +306,205 @@ filterName.addEventListener("input", () => {
     }
 })
 
+
+// ================Report Generator=================
+
+const generateReport = async () => {
+    // Fetch fresh data
+    const [studentsRes, statsRes] = await Promise.all([
+        fetch(api + "/students"),
+        fetch(api + "/stats")
+    ])
+    const students = await studentsRes.json()
+    const stats = await statsRes.json()
+
+    const now = new Date()
+    const dateStr = now.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+    const timeStr = now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
+
+    // Per-class breakdown
+    const classBreakdown = classes.map(cls => {
+        const classStudents = students.filter(s => s.class_id === cls.id)
+        const avgMarks = classStudents.length
+            ? (classStudents.reduce((sum, s) => sum + s.marks, 0) / classStudents.length).toFixed(1)
+            : "—"
+        const avgPresent = classStudents.length
+            ? (classStudents.reduce((sum, s) => sum + s.present, 0) / classStudents.length).toFixed(1)
+            : "—"
+        return { name: cls.name, count: classStudents.length, avgMarks, avgPresent }
+    })
+
+    // Top 5 students by marks
+    const top5 = [...students].sort((a, b) => b.marks - a.marks).slice(0, 5)
+
+    // Students needing attention (marks < 60 or present < 15)
+    const needsAttention = students.filter(s => s.marks < 60 || s.present < 15)
+
+    const reportHTML = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Report — ${dateStr}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; color: #1e293b; background: #f8fafc; padding: 40px; }
+        .header { text-align: center; margin-bottom: 36px; padding-bottom: 24px; border-bottom: 3px solid #3b82f6; }
+        .header h1 { font-size: 28px; color: #1e40af; font-weight: 700; }
+        .header p { color: #64748b; margin-top: 6px; font-size: 14px; }
+        .section { margin-bottom: 32px; }
+        .section h2 { font-size: 16px; font-weight: 700; color: #1e40af; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 14px; padding-bottom: 6px; border-bottom: 1px solid #e2e8f0; }
+        .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+        .stat-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; text-align: center; }
+        .stat-card .value { font-size: 26px; font-weight: 700; color: #2563eb; }
+        .stat-card .label { font-size: 11px; color: #94a3b8; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.07); }
+        thead { background: #1e40af; color: white; }
+        th { padding: 10px 14px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+        td { padding: 9px 14px; border-bottom: 1px solid #f1f5f9; }
+        tr:last-child td { border-bottom: none; }
+        tr:nth-child(even) { background: #f8fafc; }
+        .badge-pass { background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .badge-fail { background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .badge-warn { background: #fef9c3; color: #854d0e; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .footer { text-align: center; margin-top: 40px; font-size: 12px; color: #94a3b8; padding-top: 16px; border-top: 1px solid #e2e8f0; }
+        @media print {
+            body { padding: 20px; background: white; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🎓 Student Management Report</h1>
+        <p>Generated on ${dateStr} at ${timeStr}</p>
+    </div>
+
+    <!-- Stats Summary -->
+    <div class="section">
+        <h2>📊 Overview</h2>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="value">${stats.total_students}</div><div class="label">Total Students</div></div>
+            <div class="stat-card"><div class="value">${stats.total_classes}</div><div class="label">Total Classes</div></div>
+            <div class="stat-card"><div class="value">${stats.avg_marks.toFixed(1)}%</div><div class="label">Avg Marks</div></div>
+            <div class="stat-card"><div class="value">${stats.avg_present.toFixed(1)}</div><div class="label">Avg Present</div></div>
+            <div class="stat-card"><div class="value">${stats.total_present}</div><div class="label">Total Present</div></div>
+        </div>
+    </div>
+
+    <!-- Class Breakdown -->
+    <div class="section">
+        <h2>🏫 Class Breakdown</h2>
+        <table>
+            <thead>
+                <tr><th>Class</th><th>Students</th><th>Avg Marks</th><th>Avg Attendance</th></tr>
+            </thead>
+            <tbody>
+                ${classBreakdown.map(c => `
+                <tr>
+                    <td>${c.name}</td>
+                    <td>${c.count}</td>
+                    <td>${c.avgMarks}${c.avgMarks !== "—" ? "%" : ""}</td>
+                    <td>${c.avgPresent}</td>
+                </tr>`).join("")}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Top 5 Students -->
+    <div class="section">
+        <h2>🏆 Top 5 Students by Marks</h2>
+        <table>
+            <thead>
+                <tr><th>Rank</th><th>Name</th><th>Class</th><th>Marks</th><th>Attendance</th></tr>
+            </thead>
+            <tbody>
+                ${top5.map((s, i) => `
+                <tr>
+                    <td>${["🥇","🥈","🥉","4th","5th"][i]}</td>
+                    <td>${s.name}</td>
+                    <td>${getClassName(s.class_id)}</td>
+                    <td><span class="badge-pass">${s.marks}%</span></td>
+                    <td>${s.present}</td>
+                </tr>`).join("")}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Needs Attention -->
+    <div class="section">
+        <h2>⚠️ Students Needing Attention (Marks &lt; 60 or Attendance &lt; 15)</h2>
+        ${needsAttention.length === 0
+            ? `<p style="color:#64748b; font-size:14px; padding: 12px 0;">✅ All students are performing well!</p>`
+            : `<table>
+            <thead>
+                <tr><th>Name</th><th>Class</th><th>Marks</th><th>Attendance</th><th>Issue</th></tr>
+            </thead>
+            <tbody>
+                ${needsAttention.map(s => `
+                <tr>
+                    <td>${s.name}</td>
+                    <td>${getClassName(s.class_id)}</td>
+                    <td>${s.marks}%</td>
+                    <td>${s.present}</td>
+                    <td>
+                        ${s.marks < 60 ? '<span class="badge-fail">Low Marks</span>' : ""}
+                        ${s.present < 15 ? '<span class="badge-warn">Low Attendance</span>' : ""}
+                    </td>
+                </tr>`).join("")}
+            </tbody>
+        </table>`}
+    </div>
+
+    <!-- All Students -->
+    <div class="section">
+        <h2>👥 All Students</h2>
+        <table>
+            <thead>
+                <tr><th>ID</th><th>Name</th><th>Age</th><th>Class</th><th>Marks</th><th>Attendance</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+                ${students.map(s => `
+                <tr>
+                    <td>${s.id}</td>
+                    <td>${s.name}</td>
+                    <td>${s.age}</td>
+                    <td>${getClassName(s.class_id)}</td>
+                    <td>${s.marks}%</td>
+                    <td>${s.present}</td>
+                    <td>${s.marks >= 60 ? '<span class="badge-pass">Pass</span>' : '<span class="badge-fail">Fail</span>'}</td>
+                </tr>`).join("")}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer">
+        Student Management System &nbsp;•&nbsp; ${dateStr} &nbsp;•&nbsp; All rights reserved
+    </div>
+
+</body>
+</html>`
+
+    // Open in new tab and trigger print dialog
+    const win = window.open("", "_blank")
+    win.document.write(reportHTML)
+    win.document.close()
+    win.focus()
+    setTimeout(() => win.print(), 500)
+}
+
+// Attach to report button
+const reportBtn = document.getElementById("reportBtn")
+if (reportBtn) {
+    reportBtn.addEventListener("click", generateReport)
+}
+
+
 // ================Init=================
 const init = async () => {
-    await displayClasses()   
-    await displayStudents()  
+    await displayClasses()
+    await displayStudents()
     await showStats()
 }
 
