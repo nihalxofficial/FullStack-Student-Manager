@@ -17,7 +17,7 @@ const filterMarksMin = document.getElementById("filterMarksMin")
 const filterPresentMin = document.getElementById("filterPresentMin")
 const applyFilterBtn = document.getElementById("applyFilterBtn")
 
-// const api = "http://127.0.0.1:3000"
+// const api = "http://localhost:5000"
 const api = "https://student-manager-s0ou.onrender.com"
 
 let statTotal = document.getElementById("statTotal")
@@ -30,69 +30,53 @@ let classes = []
 
 
 const showStats = async () => {
-    const res = await fetch(api+"/stats")
+    const res = await fetch(api + "/stats")
     const stats = await res.json()
-    // console.log(stats);
     statTotal.innerText = stats.total_students
     statClasses.innerText = stats.total_classes
     statAvgMarks.innerText = stats.avg_marks.toFixed(2)
     statPresentAvg.innerText = stats.avg_present.toFixed(2)
     statTotalPresent.innerText = stats.total_present
-    
 }
 
 
 // Class Crud================================
-// ===============Create class===============
-newClassName.addEventListener("keyup", (event)=>{
-    if(event.key==="Enter"){
-        loadNewClass();
-        
+
+newClassName.addEventListener("keyup", (event) => {
+    if (event.key === "Enter") {
+        loadNewClass()
     }
 })
 
-addClassBtn.addEventListener("click", ()=>{
-    loadNewClass();
-    
+addClassBtn.addEventListener("click", () => {
+    loadNewClass()
 })
 
-
-// ==================Create class===============
-const loadNewClass = async () =>{
-
-    const newClassValue = newClassName.value;
-
-    const res = await fetch(api + "/classes",{
+const loadNewClass = async () => {
+    const newClassValue = newClassName.value
+    const res = await fetch(api + "/classes", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            name: newClassValue
-        })
-    });
-
-    if(!res.ok){
-    console.log("Request failed")
-    return
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newClassValue })
+    })
+    if (!res.ok) {
+        console.log("Request failed")
+        return
     }
-    newClassName.value = "";
-    await displayClasses();
-    valueSelect();
-    showStats();
+    newClassName.value = ""
+    await displayClasses()
 }
 
-// ===============Read Classes==================
-const displayClasses = async () => {    
+const displayClasses = async () => {
     classListContainer.innerHTML = ""
     const res = await fetch(api + "/classes")
-    if(!res.ok){
-    console.log("Request failed")
-    return
+    if (!res.ok) {
+        console.log("Request failed")
+        return
     }
     const data = await res.json()
     classes = Array.isArray(data) ? data : []
-    classes.forEach(el=>{
+    classes.forEach(el => {
         const classBadge = document.createElement("span")
         classBadge.innerHTML = `
         <span class="badge bg-blue-900/60 text-blue-200 py-3 px-3 border border-blue-700/50 flex items-center gap-1">
@@ -102,56 +86,39 @@ const displayClasses = async () => {
         `
         classListContainer.appendChild(classBadge)
     })
-    valueSelect();
-    showStats();
+    valueSelect()
 }
 
-// ===============Delete Class===================
-// ===============Delete Class===================
 const deleteClass = async (classId) => {
-    // get students
     const res = await fetch(api + "/students")
-    
-    // Even if status is not ok, try to parse the response
     let students = []
     try {
         students = await res.json()
-        // Ensure students is an array
-        if (!Array.isArray(students)) {
-            students = []
-        }
+        if (!Array.isArray(students)) students = []
     } catch (e) {
         console.log("Error parsing students response:", e)
         students = []
     }
 
-    // check if class has students
     const hasStudents = students.some(s => s.class_id === classId)
 
     if (hasStudents) {
         const ok = confirm("This class has students. Delete them all?")
         if (!ok) return
-
-        // delete students of that class
-        await fetch(api + "/students/class/" + classId, {
-            method: "DELETE"
-        })
+        await fetch(api + "/students/class/" + classId, { method: "DELETE" })
     }
 
-    // delete class
-    await fetch(api + "/classes/" + classId, {
-        method: "DELETE"
-    })
+    await fetch(api + "/classes/" + classId, { method: "DELETE" })
 
-    displayClasses()
-    displayStudents()
+    await displayClasses()
+    await displayStudents()
 }
 
 const valueSelect = () => {
-    classSelect.innerHTML = '<option value="">— select class —</option>' + 
-    classes.map(c => `<option value="${c.id}">${c.name}</option>`)
-    filterClass.innerHTML = '<option value="">— select class —</option>' + 
-    classes.map(c => `<option value="${c.id}">${c.name}</option>`)
+    classSelect.innerHTML = '<option value="">— select class —</option>' +
+        classes.map(c => `<option value="${c.id}">${c.name}</option>`)
+    filterClass.innerHTML = '<option value="">— select class —</option>' +
+        classes.map(c => `<option value="${c.id}">${c.name}</option>`)
 }
 
 
@@ -159,15 +126,15 @@ const valueSelect = () => {
 
 studentListContainer.addEventListener("dblclick", async (event) => {
     if (event.target.closest(".student-card")) {
-        if (event.target.closest(".delete-student")) return        
+        if (event.target.closest(".delete-student")) return
 
         const card = event.target.closest(".student-card")
         const id = parseInt(card.dataset.studentId)
 
         editingStudentId = id
-        const res = await fetch(api + "/students/"+id)
-        const student =  await res.json()
-        
+        const res = await fetch(api + "/students/" + id)
+        const student = await res.json()
+
         if (!student) return
 
         studentName.value = student.name
@@ -178,23 +145,18 @@ studentListContainer.addEventListener("dblclick", async (event) => {
     }
 })
 
-studentListContainer.addEventListener("click",(event)=>{
-
-    if(event.target.closest(".delete-student")){        
+studentListContainer.addEventListener("click", (event) => {
+    if (event.target.closest(".delete-student")) {
         const btn = event.target.closest(".delete-student")
         const id = parseInt(btn.dataset.studentId)
-        console.log("from event function");
-        
         deleteStudent(id)
     }
-
 })
 
-addStudentBtn.addEventListener("click", ()=>{
-    createStudent();
+addStudentBtn.addEventListener("click", () => {
+    createStudent()
 })
 
-// ===================Update Student==============
 updateStudentBtn.addEventListener("click", async () => {
     if (editingStudentId === null) return
     const name = studentName.value
@@ -203,98 +165,73 @@ updateStudentBtn.addEventListener("click", async () => {
     const present = parseInt(studentPresent.value)
     const class_id = parseInt(classSelect.value)
 
-    const response = await fetch(api + "/students/"+ editingStudentId,{
+    await fetch(api + "/students/" + editingStudentId, {
         method: "PUT",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            name,
-            marks,
-            age,
-            present,
-            class_id,
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, marks, age, present, class_id })
     })
-    const data = await response.json()
-    console.log(data);
-    
-    displayStudents()
 
-    // Reset form
+    resetForm()
+    await displayStudents()
+    await showStats()
+})
+
+deleteStudentBtn.addEventListener("click", async () => {
+    await fetch(api + "/students/" + editingStudentId, { method: "DELETE" })
+    resetForm()
+    await displayStudents()
+    await showStats()
+})
+
+const resetForm = () => {
     studentName.value = ""
     studentAge.value = ""
     studentMarks.value = ""
     studentPresent.value = ""
     classSelect.value = ""
     editingStudentId = null
-})
-
-
-deleteStudentBtn.addEventListener("click", async ()=>{
-    const res = await fetch(api+"/students/"+editingStudentId,{
-        method: "DELETE"
-    })
-    const data = await res.text()
-    studentName.value = ""
-    studentAge.value = ""
-    studentMarks.value = ""
-    studentPresent.value = ""
-    classSelect.value = ""
-    editingStudentId = null
-    displayStudents()
-})
-
-
-// ==================Create Student======================
+}
 
 const createStudent = async () => {
     const name = studentName.value
     const age = parseInt(studentAge.value)
     const marks = parseInt(studentMarks.value)
     const present = parseInt(studentPresent.value)
-    const class_id = parseInt(classSelect.value)    
+    const class_id = parseInt(classSelect.value)
 
-    const res = await fetch(api+"/students",{
+    await fetch(api + "/students", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            name: name,
-            age: age,
-            marks: marks,
-            present: present,
-            class_id: class_id
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, age, marks, present, class_id })
     })
-    // const newStudent = await res.json();
-    // students.push(newStudent);
-    displayStudents()
-    
 
-    studentName.value = "";
-    studentAge.value = "";
-    studentMarks.value = "";
-    studentPresent.value = "";
-    classSelect.value = "";
+    resetForm()
+    await displayStudents()
+    await showStats()
 }
-
-
-// ======================Read Student=====================
 
 const displayStudents = async () => {
     const res = await fetch(api + "/students")
-    const students = await res.json()   
-     if (!Array.isArray(students)) {
+    const students = await res.json()
+    if (!Array.isArray(students)) {
         console.error("Expected array but got:", students)
         return
-    } 
+    }
 
-    studentListContainer.innerHTML = "";
+    studentListContainer.innerHTML = ""
+
+    if (students.length === 0) {
+        studentListContainer.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-16 text-blue-300/50">
+            <div class="text-4xl mb-3">🎓</div>
+            <div class="text-lg font-semibold">No students found</div>
+            <div class="text-sm mt-1">Add a student to get started</div>
+        </div>`
+        return
+    }
+
     students.forEach(s => {
-        
-        const list = document.createElement("div") 
+        const list = document.createElement("div")
         list.innerHTML = `
         <div class="student-card cursor-pointer" data-student-id="${s.id}">
               <div class="flex items-center gap-3 w-3/12">
@@ -318,60 +255,52 @@ const displayStudents = async () => {
                 <button class="action-btn delete-student" data-student-id="${s.id}">🗑️ delete</button>
               </div>
             </div>
-        `;
+        `
         studentListContainer.appendChild(list)
-        
-    } )
-    showStats();
+    })
 }
 
-function getClassName(classId){
-    const found = classes.find(c => c.id === classId)    
+function getClassName(classId) {
+    const found = classes.find(c => c.id === classId)
     return found ? found.name : "—"
 }
 
-
-// ======================Delete Student=====================
-
-const deleteStudent = async(id) => {    
-    const res = await fetch(api+"/students/"+id,{
-        method: "DELETE"
-    })
-    const data = await res.text()
-    displayStudents()
+const deleteStudent = async (id) => {
+    await fetch(api + "/students/" + id, { method: "DELETE" })
+    await displayStudents()
+    await showStats()
 }
 
 // ================Filter Students=================
 
-const filterStudents = async () => {    
+const filterStudents = async () => {
     let url = api + "/students/filtered?"
-
     const name = filterName.value
     const classId = filterClass.value
     const marks = filterMarksMin.value
     const present = filterPresentMin.value
 
-    if(name){
-        url += "name=" + name + "&"
-    }
-
-    if(classId){
-        url += "class_id=" + classId + "&"
-    }
-
-    if(marks){
-        url += "marks=" + marks + "&"
-    }
-
-    if(present){
-        url += "present=" + present + "&"
-    }
+    if (name) url += "name=" + name + "&"
+    if (classId) url += "class_id=" + classId + "&"
+    if (marks) url += "marks=" + marks + "&"
+    if (present) url += "present=" + present + "&"
 
     const res = await fetch(url)
     const students = await res.json()
-    studentListContainer.innerHTML = "";
+    studentListContainer.innerHTML = ""
+
+    if (students.length === 0) {
+        studentListContainer.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-16 text-blue-300/50">
+            <div class="text-4xl mb-3">🎓</div>
+            <div class="text-lg font-semibold">No students found</div>
+            <div class="text-sm mt-1">Add a student to get started</div>
+        </div>`
+        return
+    }
+
     students.forEach(s => {
-        const list = document.createElement("div") 
+        const list = document.createElement("div")
         list.innerHTML = `
         <div class="student-card cursor-pointer" data-student-id="${s.id}">
               <div class="flex items-center gap-3 w-3/12">
@@ -395,20 +324,18 @@ const filterStudents = async () => {
                 <button class="action-btn delete-student" data-student-id="${s.id}">🗑️ delete</button>
               </div>
             </div>
-        `;
+        `
         studentListContainer.appendChild(list)
-        
-    } )
+    })
 }
 
 applyFilterBtn.addEventListener("click", filterStudents)
 
-valueSelect();
-showStats();
-
+// ================Init=================
 const init = async () => {
-    await displayClasses();   // load classes first
-    await displayStudents();  // then load students
+    await displayClasses()   // loads classes + populates selects
+    await displayStudents()  // loads students
+    await showStats()        // loads stats once
 }
 
-init();
+init()
