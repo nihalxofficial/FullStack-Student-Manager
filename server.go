@@ -16,6 +16,7 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/gofiber/fiber/v3/middleware/static"
 	"github.com/redis/go-redis/v9"
+	"crypto/tls"
 
 	// "gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
@@ -56,7 +57,6 @@ func startKeepAlive(serverURL string) {
 	}()
 }
 
-
 func invalidateStudentCache() {
 	if rdb == nil {
 		return
@@ -90,6 +90,13 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to parse Redis URL:", err)
 	}
+
+	// Force TLS for Upstash
+	opt.TLSConfig = &tls.Config{
+		InsecureSkipVerify: true,
+	}
+
+	rdb = redis.NewClient(opt)
 	rdb = redis.NewClient(opt)
 	if _, err := rdb.Ping(ctx).Result(); err != nil {
 		log.Println("[redis] warning: could not connect to Redis:", err)

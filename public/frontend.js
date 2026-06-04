@@ -310,7 +310,7 @@ filterName.addEventListener("input", () => {
 // ================Report Generator=================
 
 const generateReport = async () => {
-    // Fetch fresh data
+    // Fetch all data first (before opening any window)
     const [studentsRes, statsRes] = await Promise.all([
         fetch(api + "/students"),
         fetch(api + "/stats")
@@ -486,12 +486,24 @@ const generateReport = async () => {
 </body>
 </html>`
 
-    // Open in new tab and trigger print dialog
-    const win = window.open("", "_blank")
-    win.document.write(reportHTML)
-    win.document.close()
-    win.focus()
-    setTimeout(() => win.print(), 500)
+    // ✅ FIX: Use Blob URL instead of document.write()
+    // document.write() after async calls gets blocked by browsers on many hosts (including Render's HTTPS).
+    // Blob URLs are created synchronously and bypass popup restrictions.
+    const blob = new Blob([reportHTML], { type: "text/html" })
+    const blobUrl = URL.createObjectURL(blob)
+    const win = window.open(blobUrl, "_blank")
+
+    if (!win) {
+        alert("Popup blocked! Please allow popups for this site and try again.")
+        URL.revokeObjectURL(blobUrl)
+        return
+    }
+
+    // Clean up the blob URL after the window has loaded and printed
+    setTimeout(() => {
+        win.print()
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 2000)
+    }, 800)
 }
 
 // Attach to report button
@@ -503,6 +515,22 @@ if (reportBtn) {
 
 // ================Init=================
 const init = async () => {
+    studentListContainer.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-16 text-blue-300/50">
+            <div class="text-2xl mb-3 animate-pulse">⏳</div>
+            <div class="text-sm">Waking up server, please wait...</div>
+        </div>`
+
+    // Retry loop — keeps trying until server responds
+    let retries = 0
+    while (retries < 10) {
+        try {
+            const res = await fetch(api + "/ping", { signal: AbortSignal.timeout(5000) })
+            if (res.ok) break
+        } catch (_) {}
+        retries++
+        await new Promise(r => setTimeout(r, 3000))
+    }
     await displayClasses()
     await displayStudents()
     await showStats()
